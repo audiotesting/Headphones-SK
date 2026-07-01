@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-<title>Rýchly Test Slúchadiel v2.1</title>
+<title>Rýchly Audio test v2.1</title>
 <style>
 * {margin: 0;padding: 0;box-sizing: border-box;}
 body {font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;background: #1a1a2e;color: #e0e0e0;min-height: 100vh;padding-bottom: 80px;}
@@ -92,23 +92,23 @@ body {font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-s
 
 <!-- Nagłówek -->
 <div class="header">
-<h1>&#x1f3a7; Rýchly Test Slúchadiel</h1>
-<p>5 základných testov na vyhodnotenie kvality slúchadiel</p>
+<h1>&#x1f3a7; Rýchly Audio test</h1>
+<p>5 základných testov na vyhodnotenie kvality slúchadiel/reproduktorov/mikrofónu</p>
 </div>
 
 <!-- Ostrzeżenie -->
 <div class="warning">&#x26a0;&#xfe0f; Nasaďte si slúchadlá, začnite na NÍZKEJ hlasitosti, potom postupne zvyšujte.</div>
 
 <!-- Banner iOS -->
-<div class="info-banner" id="iosBanner">&#x2139;&#xfe0f; Wykryto iOS &mdash; nagrywanie mikrofonu używa formatu mp4 dla kompatybilności.</div>
+<div class="info-banner" id="iosBanner">&#x2139;&#xfe0f; Zistené iOS &mdash; Nahrávanie z mikrofónu používa formát mp4 kvôli kompatibilite.</div>
 
 <!-- TEST 1: Kabel i połączenie -->
 <div class="test-section" id="section0">
 <h2>1. Test Kábla a Pripojenia</h2>
 <p class="description">Prehráva stály tón. Počas počúvania hýbte káblom pri zástrčke a každom slúchadle. Praskanie alebo výpadky = poškodený kábel alebo uvoľnené pripojenie.</p>
 <div class="criteria">
-<div class="pass">&#x2714; VYHOVUJE: Stály tón, žiadne zmeny pri pohybe káblom</div>
-<div class="fail">&#x2718; NEVYHOVUJE: Praskanie, výpadky pri pohybe káblom</div>
+<div class="pass">&#x2714; TEST PREŠIEL: Stály tón, žiadne zmeny pri pohybe káblom</div>
+<div class="fail">&#x2718; TEST NEPREŠIEL: Praskanie, výpadky pri pohybe káblom</div>
 </div>
 <div class="btn-row">
 <button class="btn btn-primary" id="cableStartBtn" onclick="cableStart()">&#x25b6; Štart (15 sek)</button>
@@ -122,11 +122,11 @@ body {font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-s
 <h2>2. Celý Frekvenčný Rozsah (20 Hz &ndash; 20 kHz)</h2>
 <p class="description">Prechádza od basov po výšky za 15 sekúnd. Odhaľuje skreslenie, chrastenie, mŕtve miesta alebo obmedzený frekvenčný rozsah.</p>
 <div class="criteria">
-<div class="pass">&#x2714; VYHOVUJE: Plynulý tón od začiatku do konca, bez bzučania/výpadkov</div>
-<div class="fail">&#x2718; NEVYHOVUJE: Výpadky, bzučanie, chrastenie alebo náhle zmeny hlasitosti</div>
+<div class="pass">&#x2714; TEST PREŠIEL: Plynulý tón od začiatku do konca, bez bzučania/výpadkov</div>
+<div class="fail">&#x2718; TEST NEPREŠIEL: Výpadky, bzučanie, chrastenie alebo náhle zmeny hlasitosti</div>
 </div>
 <div class="btn-row">
-<button class="btn btn-primary" id="sweepStartBtn" onclick="sweepStart()">&#x25b6; Start</button>
+<button class="btn btn-primary" id="sweepStartBtn" onclick="sweepStart()">&#x25b6; Štart</button>
 <button class="btn btn-danger" id="sweepStopBtn" onclick="sweepStop()" disabled>&#x25a0; Stop</button>
 </div>
 <div class="freq-display" id="freqDisplay">-- Hz</div>
@@ -135,14 +135,14 @@ body {font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-s
 <!-- TEST 3: Balans lewo/prawo -->
 <div class="test-section" id="section2">
 <h2>3. Vyváženie Ľavý / Pravý</h2>
-<p class="description">Prepína tón medzi ušami. Obe strany by mali byť rovnako hlasné. &quot;Oba&quot; by malo znieť dokonale vycentrovane.</p>
+<p class="description">Prepína tón medzi stranami. Obe strany by mali byť rovnako hlasné. &quot;Obidve strany&quot; by mali znieť dokonale vycentrovane.</p>
 <div class="criteria">
-<div class="pass">&#x2714; VYHOVUJE: Rovnaká hlasitosť na oboch stranách; vycentrované v &quot;Oba&quot;</div>
-<div class="fail">&#x2718; NEVYHOVUJE: Jedna strana tichšia/tichá, alebo posunuté</div>
+<div class="pass">&#x2714; TEST PREŠIEL: Rovnaká hlasitosť na oboch stranách; vycentrované v &quot;Oba&quot;</div>
+<div class="fail">&#x2718; TEST NEPREŠIEL: Jedna strana tichšia/tichá, alebo posunuté</div>
 </div>
 <div class="btn-row">
-<button class="btn btn-secondary" onclick="lrPlay('left')">&#x25c0; Lewo</button>
-<button class="btn btn-secondary" onclick="lrPlay('both')">OBA</button>
+<button class="btn btn-secondary" onclick="lrPlay('left')">&#x25c0; Ľavý</button>
+<button class="btn btn-secondary" onclick="lrPlay('both')">Obidva</button>
 <button class="btn btn-secondary" onclick="lrPlay('right')">Pravý &#x25b6;</button>
 </div>
 <div class="btn-row">
@@ -151,8 +151,8 @@ body {font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-s
 </div>
 <div class="lr-indicators">
 <div class="lr-indicator lr-left" id="lrLeftInd">Ľavý</div>
-<div class="lr-indicator lr-both" id="lrBothInd">OBA</div>
-<div class="lr-indicator lr-right" id="lrRightInd">PRAVÝ</div>
+<div class="lr-indicator lr-both" id="lrBothInd">Obidva</div>
+<div class="lr-indicator lr-right" id="lrRightInd">Pravý</div>
 </div>
 </div>
 <!-- TEST 4: Test mikrofonu -->
@@ -160,16 +160,16 @@ body {font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-s
 <h2>4. Test Mikrofónu (iba na PC)</h2>
 <p class="description">Testuje mikrofón headsetov. Zobrazuje úroveň hlasitosti v reálnom čase a umožňuje nahrať 5-sekundový klip na prehratie.</p>
 <div class="criteria">
-<div class="pass">&#x2714; VYHOVUJE: Úroveň reaguje na hlas; nahrávka je čistá</div>
-<div class="fail">&#x2718; NEVYHOVUJE: Žiadna reakcia, ticho, skreslenie alebo šum</div>
+<div class="pass">&#x2714; TEST PREŠIEL: Úroveň reaguje na hlas; nahrávka je čistá</div>
+<div class="fail">&#x2718; TEST NEPREŠIEL: Žiadna reakcia, ticho, skreslenie alebo šum</div>
 </div>
 <div class="btn-row">
 <button class="btn btn-primary" id="micEnableBtn" onclick="micEnable()">&#x1f3a4; Zapnúť Mikrofón</button>
 <button class="btn btn-warning" id="micRecordBtn" onclick="micRecord()" disabled>&#x23fa; Nahrávať (5s)</button>
-<button class="btn btn-secondary" id="micPlayBtn" onclick="micPlayback()" disabled>&#x25b6; Odtwórz</button>
+<button class="btn btn-secondary" id="micPlayBtn" onclick="micPlayback()" disabled>&#x25b6; Prehrať záznam</button>
 <button class="btn btn-danger" id="micStopBtn" onclick="micStop()" disabled>&#x25a0; Stop</button>
 </div>
-<div class="status" id="micStatus">Naciśnij &quot;Zapnúť Mikrofón&quot; &rarr; &quot;Nagrywaj&quot; &rarr; &quot;Odtwórz&quot;</div>
+<div class="status" id="micStatus">Stlač &quot;Zapnúť Mikrofón&quot; &rarr; &quot;Nahraj zvuk&quot; &rarr; &quot;Prehraj záznam&quot;</div>
 <div class="mic-level-container" id="micLevelContainer" style="display:none">
 <div style="font-size:12px; color:#7a7a9d; margin-bottom:4px;">Úroveň vstupu mikrofónu:</div>
 <div class="mic-level-bar"><div class="mic-level-fill" id="micLevelFill"></div></div>
@@ -181,10 +181,10 @@ body {font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-s
 <!-- TEST 5: Test przycisków -->
 <div class="test-section" id="section4">
 <h2>5. Test Tlačidiel / Ovládania</h2>
-<p class="description">Testuje fyzické tlačidlá a dotykové ovládanie slúchadiel. Aplikácia prehráva zvuk a vedie vás cez každé ovládanie — automaticky detekuje odozvy, s možnosťou manuálneho potvrdenia.</p>
+<p class="description">Testuje fyzické tlačidlá a dotykové ovládanie slúchadiel. Aplikácia prehráva zvuk a vedie vás cez každé ovládanie — automaticky detekuje odozvy s možnosťou manuálneho potvrdenia.</p>
 <div class="criteria">
-<div class="pass">&#x2714; VYHOVUJE: Všetky ovládače reagujú správne do 5 sekúnd</div>
-<div class="fail">&#x2718; NEVYHOVUJE: Ovládače nereagujú po 2 pokusoch = funkčné poškodenie</div>
+<div class="pass">&#x2714; TEST PREŠIEL: Všetky ovládače reagujú správne do 5 sekúnd</div>
+<div class="fail">&#x2718; TEST NEPREŠIEL: Ovládače nereagujú po 2 pokusoch = funkčné poškodenie</div>
 </div>
 
 <!-- Przycisk Start -->
@@ -195,7 +195,7 @@ body {font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-s
 <!-- Wskaźnik tonu -->
 <div class="tone-indicator" id="toneIndicator">
 <div class="pulse"></div>
-<span id="toneIndicatorText">&#x1f50a; Dźwięk odtwarzany &mdash; użyj kontrolek słuchawek</span>
+<span id="toneIndicatorText">&#x1f50a; Zvuk sa prehráva &mdash; vyskúšajte všetky tlačidlá</span>
 </div>
 
 <!-- Status -->
@@ -214,7 +214,7 @@ body {font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-s
 <div class="control-card" id="card-volup">
 <div class="control-icon">&#x1f50a;</div>
 <div class="control-info">
-<h4>Głośniej <span class="auto-badge">Auto-detekcia</span></h4>
+<h4>Hlasnejšie <span class="auto-badge">Auto-detekcia</span></h4>
 <p>Stlačte hlasnejšie &mdash; zvuk by mal byť hlasnejší</p>
 </div>
 <div class="control-status" id="status-volup">Čakanie</div>
@@ -222,7 +222,7 @@ body {font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-s
 <div class="control-card" id="card-voldown">
 <div class="control-icon">&#x1f509;</div>
 <div class="control-info">
-<h4>Ciszej <span class="auto-badge">Auto-detekcia</span></h4>
+<h4>Tichšie <span class="auto-badge">Auto-detekcia</span></h4>
 <p>Stlačte tichšie &mdash; zvuk by mal byť tichší</p>
 </div>
 <div class="control-status" id="status-voldown">Čakanie</div>
@@ -230,7 +230,7 @@ body {font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-s
 <div class="control-card" id="card-mute">
 <div class="control-icon">&#x1f507;</div>
 <div class="control-info">
-<h4>Wyciszenie <span class="auto-badge">Auto-detekcia</span></h4>
+<h4>Mute <span class="auto-badge">Auto-detekcia</span></h4>
 <p>Stlačte stlmiť &mdash; zvuk by mal úplne stíchnuť</p>
 </div>
 <div class="control-status" id="status-mute">Čakanie</div>
@@ -249,8 +249,8 @@ body {font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-s
 
 <!-- Przyciski akcji -->
 <div class="action-buttons" id="actionButtons">
-<button class="btn btn-success" onclick="controlResult('pass')">&#x2713; Działa</button>
-<button class="btn btn-danger" onclick="controlResult('fail')">&#x2717; Brak reakcji</button>
+<button class="btn btn-success" onclick="controlResult('pass')">&#x2713; OK</button>
+<button class="btn btn-danger" onclick="controlResult('fail')">&#x2717; Žiadna reakcia</button>
 <button class="btn btn-secondary" onclick="controlResult('skip')">Preskočiť</button>
 </div>
 
@@ -271,7 +271,7 @@ body {font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-s
 </div>
 
 <!-- Stopka -->
-<div class="footer">Rýchly Test Slúchadiel v2.1 | 5 Testów | Web Audio API | Żadne dane nie są zbierane</div>
+<div class="footer">Rýchly Audio test v2.1 | 5 testov | Web Audio API | Nie sú zbierané žiadne dáta</div>
 
 <script>
 // ========== WSPÓŁDZIELONY KONTEKST AUDIO (Testy 1-3) ==========

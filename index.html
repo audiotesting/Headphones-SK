@@ -96,6 +96,26 @@ body {font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-s
 <p>5 základných testov na vyhodnotenie kvality slúchadiel/reproduktorov/mikrofónu</p>
 </div>
 
+<!-- Panel na rozpoznanie výstupných zariadení -->
+<div class="test-section" id="outputDetectSection" style="margin-top:15px;">
+<h2>&#x1f50a; Rozpoznanie výstupného zariadenia</h2>
+<p class="description">Zobrazí reproduktory / slúchadlá, ktoré systém vidí. Použite pred testami nižšie na overenie, že je pripojené správne prehrávacie zariadenie.</p>
+<div class="btn-row">
+<button class="btn btn-secondary" id="outDetectBtn" onclick="outDetect()">&#x1f50d; Rozpoznať výstupné zariadenia</button>
+</div>
+<div class="mic-devices" id="outDevices" style="display:none; background:rgba(0,0,0,0.2); border-radius:10px; padding:12px; margin-bottom:0;">
+<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; gap:10px;">
+<span style="font-size:12px; color:#7a7a9d;">Rozpoznané výstupné zariadenia:</span>
+<label style="font-size:11px; color:#a0a0b8; display:flex; align-items:center; gap:5px; cursor:pointer; white-space:nowrap;">
+<input type="checkbox" id="outHideBuiltin" onchange="outRenderDevices()" style="cursor:pointer;">
+Skryť pravdepodobne vstavaný výstup
+</label>
+</div>
+<div id="outDeviceList" style="font-size:13px; line-height:1.6;"></div>
+</div>
+<div class="status" id="outStatus" style="margin-top:12px;">Stlačte &quot;Rozpoznať výstupné zariadenia&quot; na zobrazenie pripojených reproduktorov / slúchadiel</div>
+</div>
+
 <!-- Ostrzeżenie -->
 <div class="warning">&#x26a0;&#xfe0f; Nasaďte si slúchadlá, začnite na NÍZKEJ hlasitosti, potom postupne zvyšujte.</div>
 
@@ -164,10 +184,25 @@ body {font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-s
 <div class="fail">&#x2718; TEST NEPREŠIEL: Žiadna reakcia, ticho, skreslenie alebo šum</div>
 </div>
 <div class="btn-row">
+<button class="btn btn-secondary" id="micDetectBtn" onclick="micDetect()">&#x1f50d; Rozpoznať mikrofóny</button>
 <button class="btn btn-primary" id="micEnableBtn" onclick="micEnable()">&#x1f3a4; Zapnúť Mikrofón</button>
 <button class="btn btn-warning" id="micRecordBtn" onclick="micRecord()" disabled>&#x23fa; Nahrávať (5s)</button>
 <button class="btn btn-secondary" id="micPlayBtn" onclick="micPlayback()" disabled>&#x25b6; Prehrať záznam</button>
 <button class="btn btn-danger" id="micStopBtn" onclick="micStop()" disabled>&#x25a0; Stop</button>
+</div>
+<div class="mic-devices" id="micDevices" style="display:none; background:rgba(0,0,0,0.2); border-radius:10px; padding:12px; margin-bottom:15px;">
+<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; gap:10px;">
+<span style="font-size:12px; color:#7a7a9d;">Rozpoznané mikrofóny:</span>
+<label style="font-size:11px; color:#a0a0b8; display:flex; align-items:center; gap:5px; cursor:pointer; white-space:nowrap;">
+<input type="checkbox" id="micHideBuiltin" onchange="micRenderDevices()" style="cursor:pointer;">
+Skryť pravdepodobne vstavaný mikrofón
+</label>
+</div>
+<div id="micDeviceList" style="font-size:13px; line-height:1.6;"></div>
+<div id="micSelectRow" style="margin-top:10px; display:none;">
+<label for="micSelect" style="font-size:12px; color:#a0a0b8; display:block; margin-bottom:4px;">Použiť tento mikrofón:</label>
+<select id="micSelect" style="width:100%; padding:10px; border-radius:8px; background:#2a2a4a; color:#e0e0e0; border:1px solid #3a3a5a; font-size:13px;"></select>
+</div>
 </div>
 <div class="status" id="micStatus">Stlač &quot;Zapnúť Mikrofón&quot; &rarr; &quot;Nahraj zvuk&quot; &rarr; &quot;Prehraj záznam&quot;</div>
 <div class="mic-level-container" id="micLevelContainer" style="display:none">
@@ -388,23 +423,227 @@ document.getElementById('lrRightInd').classList.remove('active');
 let micStream = null; let micAnalyser = null; let micAnimFrame = null;
 let mediaRecorder = null; let micChunks = []; let micBlob = null; let micAudioCtx = null;
 
+// ========== ROZPOZNANIE VÝSTUPNÝCH ZARIADENÍ (reproduktory / slúchadlá) ==========
+let outDeviceCache = [];
+
+// Heuristika: je toto výstupné zariadenie vstavaný / interný reproduktor?
+// Rovnaká výhrada ako pri mikrofóne — prehliadač nevystavuje spoľahlivý príznak
+// "vstavaný" ani typ pripojenia, takže ide o best-effort odhad podľa názvu.
+function outIsLikelyBuiltin(dev) {
+const label = (dev.label || '').toLowerCase();
+if (!label) return false;
+const externalHints = ['usb','bluetooth','headset','headphone','slúchad','sluchad','earbud','airpod','jabra','logitech','poly','plantronics','sennheiser','razer','hdmi','displayport','monitor','tv','dock','wireless','bezdrôt','external','externý','dac','soundbar'];
+if (externalHints.some(h => label.includes(h))) return false;
+const builtinHints = ['built-in','built in','builtin','internal','interný','vstavan','realtek','high definition audio','macbook','imac','laptop','notebook','speakers (','reproduktor','intel smart sound','onboard'];
+if (builtinHints.some(h => label.includes(h))) return true;
+return false;
+}
+
+// Vykreslí rozpoznané výstupné zariadenia, s ohľadom na prepínač "skryť vstavaný".
+function outRenderDevices() {
+const list = document.getElementById('outDeviceList');
+const status = document.getElementById('outStatus');
+const hideBuiltin = document.getElementById('outHideBuiltin').checked;
+if (outDeviceCache.length === 0) {
+list.innerHTML = '<span style="color:#ef5350;">\u2718 Nenašlo sa žiadne výstupné zariadenie. Systém nevidí žiadny reproduktor / slúchadlá \u2014 skontrolujte pripojenie/ovládač. Ide o problém ROZPOZNANIA, nie o nefunkčné zariadenie.</span>';
+status.textContent = 'Systém nerozpoznal žiadne výstupné zariadenie';
+status.style.color = '#ef5350';
+return;
+}
+const annotated = outDeviceCache.map((d, i) => ({ dev: d, index: i, builtin: outIsLikelyBuiltin(d) }));
+const visible = hideBuiltin ? annotated.filter(a => !a.builtin) : annotated;
+if (visible.length === 0) {
+list.innerHTML = '<span style="color:#ffa726;">\u26a0 Rozpoznaný bol len pravdepodobne vstavaný výstup a je skrytý. Zrušte zaškrtnutie "Skryť pravdepodobne vstavaný výstup".</span>';
+status.textContent = 'Nerozpoznané žiadne externé výstupné zariadenie';
+status.style.color = '#ffa726';
+return;
+}
+list.innerHTML = visible.map((a, j) => {
+const name = a.dev.label || ('Výstupné zariadenie ' + (a.index + 1) + ' (názov skrytý do udelenia povolenia)');
+const tag = a.builtin ? ' <span style="color:#7a7a9d; font-size:11px;">(pravdepodobne vstavaný)</span>' : '';
+return '<div style="color:#66bb6a;">\u2714 ' + (j + 1) + '. ' + name + tag + '</div>';
+}).join('');
+const hiddenCount = annotated.length - visible.length;
+status.textContent = 'Zobrazené výstupné zariadenia: ' + visible.length + (hiddenCount ? ' (' + hiddenCount + ' vstavaných skrytých)' : '');
+status.style.color = '#66bb6a';
+}
+
+// Rozpozná výstupné zariadenia. Názvy sú dostupné až po audio povolení, preto
+// (ako pri mikrofóne) krátko požiadame o povolenie, uvoľníme ho a potom vypíšeme.
+function outDetect() {
+const devBox = document.getElementById('outDevices');
+const list = document.getElementById('outDeviceList');
+const status = document.getElementById('outStatus');
+if (!navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices) {
+devBox.style.display = 'block';
+list.innerHTML = '<span style="color:#ef5350;">\u2718 Tento prehliadač nepodporuje rozpoznávanie zariadení.</span>';
+return;
+}
+status.textContent = 'Rozpoznávam výstupné zariadenia\u2026';
+status.style.color = '#4fc3f7';
+navigator.mediaDevices.getUserMedia({ audio: true })
+.then(tmpStream => { tmpStream.getTracks().forEach(t => t.stop()); return navigator.mediaDevices.enumerateDevices(); })
+.then(devices => { outDeviceCache = devices.filter(d => d.kind === 'audiooutput'); devBox.style.display = 'block'; outRenderDevices(); })
+.catch(err => {
+navigator.mediaDevices.enumerateDevices().then(devices => {
+outDeviceCache = devices.filter(d => d.kind === 'audiooutput');
+devBox.style.display = 'block';
+if (outDeviceCache.length === 0) {
+list.innerHTML = '<span style="color:#ef5350;">\u2718 Nenašlo sa žiadne výstupné zariadenie (problém ROZPOZNANIA \u2014 nič nie je pripojené/viditeľné).</span>';
+status.textContent = 'Systém nerozpoznal žiadne výstupné zariadenie';
+status.style.color = '#ef5350';
+} else {
+list.innerHTML = '<span style="color:#ffa726;">\u26a0 Rozpoznaných zariadení: ' + outDeviceCache.length + ', ale názvy sú skryté. Povoľte raz prístup k mikrofónu, aby sa zobrazili názvy.</span>';
+status.textContent = 'Rozpoznané výstupné zariadenia: ' + outDeviceCache.length + ' (názvy skryté)';
+status.style.color = '#ffa726';
+}
+}).catch(() => {
+devBox.style.display = 'block';
+list.innerHTML = '<span style="color:#ef5350;">\u2718 Výstupné zariadenia sa nepodarilo rozpoznať.</span>';
+status.textContent = 'Rozpoznávanie výstupu zlyhalo';
+status.style.color = '#ef5350';
+});
+});
+}
+
+// Obnoví zoznam výstupov pri zapojení/odpojení zariadenia počas testu.
+if (navigator.mediaDevices && navigator.mediaDevices.addEventListener) {
+navigator.mediaDevices.addEventListener('devicechange', () => {
+if (document.getElementById('outDevices') && document.getElementById('outDevices').style.display !== 'none') { outDetect(); }
+});
+}
+
+// Zoznam rozpoznaných vstupných zariadení (naplní micDetect).
+let micDeviceCache = [];
+
+// Heuristika: odhad, či je zariadenie vstavaný / interný mikrofón.
+// POZN.: Prehliadač nevystavuje spoľahlivý príznak "vstavaný" ani typ pripojenia
+// (USB/Bluetooth/interný) z bezpečnostných dôvodov. Toto je best-effort odhad podľa
+// názvu zariadenia — môže sa mýliť, preto je skrývanie voliteľné.
+function micIsLikelyBuiltin(dev) {
+const label = (dev.label || '').toLowerCase();
+if (!label) return false;
+const externalHints = ['usb','bluetooth','headset','headphone','slúchad','sluchad','earbud','airpod','jabra','logitech','poly','plantronics','sennheiser','razer','blue yeti','yeti','webcam','dock','hdmi','wireless','bezdrôt'];
+if (externalHints.some(h => label.includes(h))) return false;
+const builtinHints = ['built-in','built in','builtin','internal','interný','vstavan','realtek','high definition audio','macbook','imac','laptop','notebook','array','microphone array','intel smart sound','onboard'];
+if (builtinHints.some(h => label.includes(h))) return true;
+return false;
+}
+
+// Vykreslí zoznam rozpoznaných mikrofónov + výber, s ohľadom na prepínač "skryť vstavaný".
+function micRenderDevices() {
+const list = document.getElementById('micDeviceList');
+const selRow = document.getElementById('micSelectRow');
+const sel = document.getElementById('micSelect');
+const status = document.getElementById('micStatus');
+const hideBuiltin = document.getElementById('micHideBuiltin').checked;
+if (micDeviceCache.length === 0) {
+list.innerHTML = '<span style="color:#ef5350;">\u2718 Nenašiel sa žiadny mikrofón. Systém nevidí žiadne vstupné zariadenie \u2014 skontrolujte pripojenie/ovládač. Ide o problém ROZPOZNANIA, nie o nefunkčný mikrofón.</span>';
+selRow.style.display = 'none';
+status.textContent = 'Systém nerozpoznal žiadny mikrofón';
+status.style.color = '#ef5350';
+return;
+}
+const annotated = micDeviceCache.map((m, i) => ({ dev: m, index: i, builtin: micIsLikelyBuiltin(m) }));
+const visible = hideBuiltin ? annotated.filter(a => !a.builtin) : annotated;
+if (visible.length === 0) {
+list.innerHTML = '<span style="color:#ffa726;">\u26a0 Rozpoznaný bol len pravdepodobne vstavaný mikrofón a je skrytý. Zrušte zaškrtnutie "Skryť pravdepodobne vstavaný mikrofón".</span>';
+selRow.style.display = 'none';
+status.textContent = 'Nerozpoznaný žiadny externý mikrofón';
+status.style.color = '#ffa726';
+return;
+}
+list.innerHTML = visible.map((a, j) => {
+const name = a.dev.label || ('Mikrofón ' + (a.index + 1) + ' (názov skrytý do udelenia povolenia)');
+const tag = a.builtin ? ' <span style="color:#7a7a9d; font-size:11px;">(pravdepodobne vstavaný)</span>' : '';
+return '<div style="color:#66bb6a;">\u2714 ' + (j + 1) + '. ' + name + tag + '</div>';
+}).join('');
+sel.innerHTML = visible.map(a => '<option value="' + a.dev.deviceId + '">' + (a.dev.label || ('Mikrofón ' + (a.index + 1))) + (a.builtin ? ' (pravdepodobne vstavaný)' : '') + '</option>').join('');
+selRow.style.display = visible.length > 1 ? 'block' : 'none';
+const hiddenCount = annotated.length - visible.length;
+status.textContent = 'Zobrazené mikrofóny: ' + visible.length + (hiddenCount ? ' (' + hiddenCount + ' vstavaných skrytých)' : '') + ' \u2014 teraz stlačte "Zapnúť Mikrofón"';
+status.style.color = '#66bb6a';
+}
+
+// Rozpozná pripojené mikrofóny. Názvy zariadení prehliadač vydá až PO udelení
+// povolenia, preto najprv krátko požiadame o povolenie, uvoľníme ho a potom vypíšeme.
+function micDetect() {
+const devBox = document.getElementById('micDevices');
+const list = document.getElementById('micDeviceList');
+const selRow = document.getElementById('micSelectRow');
+const sel = document.getElementById('micSelect');
+const status = document.getElementById('micStatus');
+if (!navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices) {
+devBox.style.display = 'block';
+list.innerHTML = '<span style="color:#ef5350;">\u2718 Tento prehliadač nepodporuje rozpoznávanie zariadení.</span>';
+return;
+}
+status.textContent = 'Rozpoznávam mikrofóny\u2026';
+status.style.color = '#4fc3f7';
+navigator.mediaDevices.getUserMedia({ audio: true })
+.then(tmpStream => { tmpStream.getTracks().forEach(t => t.stop()); return navigator.mediaDevices.enumerateDevices(); })
+.then(devices => { micDeviceCache = devices.filter(d => d.kind === 'audioinput'); devBox.style.display = 'block'; micRenderDevices(); })
+.catch(err => {
+devBox.style.display = 'block';
+if (err && (err.name === 'NotAllowedError' || err.name === 'SecurityError')) {
+list.innerHTML = '<span style="color:#ffa726;">\u26a0 Povolenie pre mikrofón bolo zamietnuté. Povoľte prístup k mikrofónu, aby sa dali rozpoznať zariadenia.</span>';
+status.textContent = 'Povolenie zamietnuté \u2014 nedá sa zistiť, či mikrofón existuje';
+} else if (err && err.name === 'NotFoundError') {
+list.innerHTML = '<span style="color:#ef5350;">\u2718 Nenašiel sa žiadny mikrofón (NotFoundError). Problém ROZPOZNANIA \u2014 zariadenie nie je pripojené/viditeľné pre systém.</span>';
+status.textContent = 'Systém nerozpoznal žiadny mikrofón';
+} else {
+list.innerHTML = '<span style="color:#ef5350;">\u2718 Chyba: ' + (err ? err.name : 'neznáma') + '</span>';
+status.textContent = 'Rozpoznávanie mikrofónu zlyhalo';
+}
+document.getElementById('micSelectRow').style.display = 'none';
+status.style.color = '#ef5350';
+});
+}
+
+// Automaticky obnoví zoznam mikrofónov pri zapojení/odpojení zariadenia počas testu.
+if (navigator.mediaDevices && navigator.mediaDevices.addEventListener) {
+navigator.mediaDevices.addEventListener('devicechange', () => {
+if (document.getElementById('micDevices') && document.getElementById('micDevices').style.display !== 'none') { micDetect(); }
+});
+}
+
 function micEnable() {
-navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
+// Použije zariadenie vybrané v zozname (ak je), inak predvolený mikrofón.
+const sel = document.getElementById('micSelect');
+const chosenId = (sel && sel.value) ? sel.value : null;
+const constraints = chosenId ? { audio: { deviceId: { exact: chosenId } } } : { audio: true };
+navigator.mediaDevices.getUserMedia(constraints).then(stream => {
 micStream = stream;
 micAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
 const source = micAudioCtx.createMediaStreamSource(stream);
 micAnalyser = micAudioCtx.createAnalyser(); micAnalyser.fftSize = 256;
 source.connect(micAnalyser);
+let activeLabel = '';
+const track = stream.getAudioTracks()[0];
+if (track) activeLabel = track.label || '';
 document.getElementById('micEnableBtn').disabled = true;
 document.getElementById('micRecordBtn').disabled = false;
 document.getElementById('micStopBtn').disabled = false;
 document.getElementById('micLevelContainer').style.display = 'block';
-document.getElementById('micStatus').textContent = 'Mikrofón aktívny \u2014 hovorte pre zobrazenie úrovne';
+document.getElementById('micStatus').textContent = 'Mikrofón aktívny' + (activeLabel ? ' (' + activeLabel + ')' : '') + ' \u2014 hovorte pre zobrazenie úrovne';
 document.getElementById('micStatus').style.color = '#66bb6a';
 updateMicLevel();
 }).catch(err => {
-document.getElementById('micStatus').textContent = 'Prístup k mikrofónu zamietnutý alebo nedostupný';
-document.getElementById('micStatus').style.color = '#ef5350';
+const status = document.getElementById('micStatus');
+let msg;
+if (err && err.name === 'NotFoundError') {
+msg = 'Nenašiel sa žiadny mikrofón \u2014 systém nevidí žiadne vstupné zariadenie (problém ROZPOZNANIA, nie nefunkčný mikrofón)';
+} else if (err && (err.name === 'NotAllowedError' || err.name === 'SecurityError')) {
+msg = 'Prístup k mikrofónu zamietnutý \u2014 povoľte prístup na test (zatiaľ sa nedá posúdiť mikrofón)';
+} else if (err && err.name === 'NotReadableError') {
+msg = 'Mikrofón nájdený, ale nedá sa otvoriť \u2014 zariadenie je zaneprázdnené alebo chyba hardvéru/ovládača (pravdepodobne NEFUNKČNÝ)';
+} else if (err && err.name === 'OverconstrainedError') {
+msg = 'Vybraný mikrofón už nie je dostupný \u2014 spustite znova "Rozpoznať mikrofóny"';
+} else {
+msg = 'Mikrofón nedostupný: ' + (err ? err.name : 'neznáma chyba');
+}
+status.textContent = msg;
+status.style.color = '#ef5350';
 });
 }
 function updateMicLevel() {
@@ -632,9 +871,3 @@ if (/iPad|iPhone|iPod/.test(navigator.userAgent)) { document.getElementById('ios
 </script>
 </body>
 </html>
-
-
-
-
-
-
